@@ -34,7 +34,7 @@
       update_cache: yes
 
   - name: add userpermissions
-    shell: "usermod -aG docker {{ lookup('env','USER') }}"
+    shell: "sudo chmod 666 /var/run/docker.sock"
 
   # Installs Docker SDK
   # --
@@ -44,7 +44,7 @@
       name: python3-pip
   
   - name: install python sdk
-    become_user: "{{ lookup('env','USER') }}"
+    become_user: "ubuntu"
     pip:
       name:
         - docker
