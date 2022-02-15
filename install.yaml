@@ -4,9 +4,8 @@
   become: yes
   tasks:
 
-  # Install Docker
-  # --
-  # 
+# Install Docker
+
   - name: install prerequisites
     apt:
       name:
@@ -36,15 +35,18 @@
   - name: add userpermissions
     shell: "sudo chmod 666 /var/run/docker.sock"
 
-  # Installs Docker SDK
-  # --
-  # 
-  - name: "Force Install 'docker' pip module"
+# Installs Docker SDK
+
+  - name: Install python package manager
+    apt:
+      name: python3-pip
+
+  - name: Install Docker PiP Module
     pip:
       name: docker
       state: forcereinstall
 
- #Install Nginx
+#Install Nginx
 
   - name: Install Nginx
     become: yes
@@ -57,7 +59,7 @@
         - /var/run/docker.sock:/var/run/docker.sock
         - /opt/test-static/nginx/nginx.conf:/var/nginx/nginx.conf
         - /opt/test-static/nginx/conf.d/:/var/nginx/conf.d
-        - /opt/test-static/public/:/var/test-static/public
+        - ./dist /var/www
       restart_policy: always
 
 # Install PsSQL
@@ -75,3 +77,14 @@
       env:
           POSTGRES_USER: "admin"
           POSTGRES_PASSWORD: "admin"
+
+# Run Python App
+
+  - name: Copying Python App
+    copy:
+      src: python-script.sh
+      dest: /home/ubuntu
+      mode: '0777'
+
+  - name: Executing Python App
+    ansible.builtin.script: /home/ubuntu/python-script
