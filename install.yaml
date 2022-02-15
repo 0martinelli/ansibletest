@@ -1,0 +1,77 @@
+---
+- hosts: all
+  
+  become: yes
+  tasks:
+
+  # Install Docker
+  # --
+  # 
+  - name: install prerequisites
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates 
+        - curl 
+        - gnupg-agent
+        - software-properties-common
+      update_cache: yes
+
+  - name: add apt-key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+
+  - name: add docker repo
+    apt_repository:
+      repo: deb https://download.docker.com/linux/ubuntu focal stable
+
+  - name: install docker 
+    apt:
+      name: 
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+      update_cache: yes
+
+  - name: add userpermissions
+    shell: "sudo chmod 666 /var/run/docker.sock"
+
+  # Installs Docker SDK
+  # --
+  # 
+  - name: "Force Install 'docker' pip module"
+    pip:
+      name: docker
+      state: forcereinstall
+
+ #Install Nginx
+
+  - name: Install Nginx
+    become: yes
+    community.docker.docker_container:
+      name: nginx
+      image: nginx
+      ports:
+          - "80:80"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /opt/test-static/nginx/nginx.conf:/var/nginx/nginx.conf
+        - /opt/test-static/nginx/conf.d/:/var/nginx/conf.d
+        - /opt/test-static/public/:/var/test-static/public
+      restart_policy: always
+
+# Install PsSQL
+
+  - name: Create PSSQL Container
+    community.docker.docker_container:
+      name: db_test
+      image: "postgres:latest"
+      ports:
+          - "5432:5432"
+      volumes:
+          - db:/var/mysql
+
+      restart_policy: always
+      env:
+          POSTGRES_USER: "admin"
+          POSTGRES_PASSWORD: "admin"
