@@ -78,13 +78,23 @@
           POSTGRES_USER: "admin"
           POSTGRES_PASSWORD: "admin"
 
+#Grabbing local user
+  
+  - name: get the username running the deploy
+    become: false
+    command: whoami
+    register: username_on_the_host
+
 # Run Python App
 
   - name: Copying Python App
+    become: yes
     copy:
       src: python-script.sh
-      dest: /home/ubuntu
+      owner: '{{username_on_the_host.stdout}}'
+      group: '{{username_on_the_host.stdout}}'
+      dest: '/home/{{username_on_the_host.stdout}}'
       mode: '0777'
 
   - name: Executing Python App
-    ansible.builtin.script: /home/ubuntu/python-script
+    command: sh '/home/{{username_on_the_host.stdout}}/python-script.sh'
